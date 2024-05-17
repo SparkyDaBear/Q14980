@@ -24,27 +24,37 @@
 </head>
 <body>
     <h1>Protein Structure Viewer</h1>
-    <input type="file" id="fileInput" accept=".pdb" />
     <div id="viewer"></div>
 
     <script>
-        document.getElementById('fileInput').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const pdbData = e.target.result;
+        function loadPDB() {
+            fetch('Q14980.pdb')
+                .then(response => response.text())
+                .then(pdbData => {
                     const element = document.getElementById('viewer');
                     const config = { backgroundColor: 'white' };
                     const viewer = $3Dmol.createViewer(element, config);
                     viewer.addModel(pdbData, 'pdb');
-                    viewer.setStyle({}, { cartoon: { color: 'spectrum' } });
+
+                    // Color residues 826 to 2112 in red
+                    viewer.setStyle({ resi: [...Array(2112-826+1).keys()].map(i => i+826) }, { cartoon: { color: 'red' } });
+                    
+                    // Color residues 340 to 355 in blue
+                    viewer.setStyle({ resi: [...Array(355-340+1).keys()].map(i => i+340) }, { cartoon: { color: 'blue' } });
+
+                    // Color residues 810 to 820 in blue
+                    viewer.setStyle({ resi: [...Array(820-810+1).keys()].map(i => i+810) }, { cartoon: { color: 'blue' } });
+
+                    // Color the rest of the residues in cyan
+                    viewer.setStyle({ not: { resi: [...Array(2112-826+1).keys()].map(i => i+826).concat([...Array(355-340+1).keys()].map(i => i+340), [...Array(820-810+1).keys()].map(i => i+810)) } }, { cartoon: { color: 'cyan' } });
+
                     viewer.zoomTo();
                     viewer.render();
-                };
-                reader.readAsText(file);
-            }
-        });
+                })
+                .catch(error => console.error('Error loading PDB file:', error));
+        }
+
+        window.onload = loadPDB;
     </script>
 </body>
 </html>
